@@ -17,7 +17,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     env_file:
-      - ./api-job-tracker/.env.production
+      - ./api/.env.production
     depends_on:
       - db
     expose:
@@ -29,7 +29,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     env_file:
-      - ./web-job-tracker/.env.production
+      - ./web/.env.production
     expose:
       - "3000"
     depends_on:

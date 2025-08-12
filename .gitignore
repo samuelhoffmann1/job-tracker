@@ -1,0 +1,25 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Node.js
+node_modules/
+npm-debug.log
+
+# Build outputs
+dist/
+build/
+.next/
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+
+# Database
+db-data/
+
+# OS files
+.DS_Store
+Thumbs.db

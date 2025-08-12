@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: job-tracker-db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+
+  backend:
+    build:
+      context: ./api-job-tracker
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - ./api-job-tracker/.env.docker
+    depends_on:
+      - db
+    expose:
+      - "3001"
+
+  frontend:
+    build:
+      context: ./web-job-tracker
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - ./web-job-tracker/.env.production
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  db-data:
+
+networks:
+  default:
+    name: job-tracker-network

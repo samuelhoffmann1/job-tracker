@@ -17,7 +17,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     env_file:
-      - ./api-job-tracker/.env.docker
+      - ./api-job-tracker/.env.production
     depends_on:
       - db
     expose:

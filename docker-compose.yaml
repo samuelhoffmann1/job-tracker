@@ -13,7 +13,7 @@ services:
 
   backend:
     build:
-      context: ./api-job-tracker
+      context: ./api
       dockerfile: Dockerfile
     restart: always
     env_file:
@@ -25,7 +25,7 @@ services:
 
   frontend:
     build:
-      context: ./web-job-tracker
+      context: ./web
       dockerfile: Dockerfile
     restart: always
     env_file:

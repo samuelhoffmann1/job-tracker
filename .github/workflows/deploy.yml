@@ -24,6 +24,7 @@ jobs:
 
     env:
       TEST_DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
     steps:
       - uses: actions/checkout@v4

@@ -55,7 +55,7 @@ jobs:
 
       - name: Pull latest code
         run: |
-          cd $DEPLOY_DIR
+          cd job-tracker
           git pull origin main
 
       - name: Rebuild & restart

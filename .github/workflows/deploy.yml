@@ -1,0 +1,63 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies (API)
+        run: |
+          cd api
+          npm ci
+      - name: Run API tests
+        run: |
+          cd api
+          npm test
+      - name: Install dependencies (Web)
+        run: |
+          cd web
+          npm ci
+      - name: Run Web tests
+        run: |
+          cd web
+          npm test
+
+
+  deploy:
+    needs: test
+    runs-on: self-hosted
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull latest code
+        run: |
+          cd $DEPLOY_DIR
+          git pull origin main
+
+      - name: Rebuild & restart
+        run: |
+          docker compose build --no-cache
+          docker compose up -d

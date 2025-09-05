@@ -24,7 +24,7 @@ describe('Jobs API', () => {
       ['123', 'test@example.com', 'Test User']
     );
     userId = userResult.rows[0].id;
-    authToken = await generateTestToken({ sub: userId.toString() }, process.env.NEXTAUTH_SECRET!);
+    authToken = await generateTestToken({ sub: '123' }, process.env.NEXTAUTH_SECRET!);
   });
 
   afterAll(async () => {
@@ -75,7 +75,6 @@ describe('Jobs API', () => {
         max_salary: 120000,
         rating: 8.5,
         company: 'Tech Corp',
-        owner_id: userId
       };
 
       const response = await request(app)

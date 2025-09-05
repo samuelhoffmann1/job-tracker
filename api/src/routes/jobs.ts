@@ -1,20 +1,5 @@
 import { Router } from 'express';
-import * as z from "zod/v4";
-
-const JobSchema = z.object({
-  title: z.string(),
-  url: z.url({
-    protocol: /^https?$/,
-    hostname: z.regexes.domain
-  }),
-  date_posted: z.iso.date(),
-  location: z.string(),
-  min_salary: z.int().nonnegative().optional(),
-  max_salary: z.int().nonnegative().optional(),
-  rating: z.number().min(0).max(10),
-  company: z.string(),
-  owner_id: z.number().int().positive(),
-});
+import { ApplicationSchema, JobSchema } from "../schemas";
 
 const router = Router();
 
@@ -51,24 +36,24 @@ router.get('/count', async (req, res) => {
 router.get('/user', async (req, res) => {
   const db = req.app.get('db');
   const googleId = (req as any).user.sub;
-  
+
   try {
     // Get user's database ID from their Google ID
     const userResult = await db.query('SELECT id FROM users WHERE google_id = $1', [googleId]);
-    
+
     if (userResult.rows.length === 0) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
-    
+
     const userId = userResult.rows[0].id;
-    
+
     // Get jobs for this user
     const result = await db.query(
       'SELECT * FROM jobs WHERE owner_id = $1 ORDER BY rating DESC',
       [userId]
     );
-    
+
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching jobs:', error);
@@ -81,6 +66,7 @@ router.post('/', async (req, res) => {
   const db = req.app.get('db');
   const result = JobSchema.safeParse(req.body);
   if (!result.success) {
+    console.log('Error: ', result.error!.issues)
     res.status(400).json({
       message: 'Validation failed',
       errors: result.error!.issues,
@@ -90,18 +76,28 @@ router.post('/', async (req, res) => {
   const job = result.data;
 
   try {
+    const googleId = (req as any).user.sub;
+
+    const userResult = await db.query('SELECT id FROM users WHERE google_id = $1', [googleId]);
+
+    if (userResult.rows.length === 0) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const userId = userResult.rows[0].id;
     const newJob = await db.query(
       'INSERT INTO jobs (title, url, date_posted, location, min_salary, max_salary, rating, company, owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
       [
-        job.title, 
-        job.url, 
-        job.date_posted, 
-        job.location, 
+        job.title,
+        job.url,
+        job.date_posted,
+        job.location,
         job.min_salary ?? null,
         job.max_salary ?? null,
-        job.rating, 
-        job.company, 
-        job.owner_id
+        job.rating,
+        job.company,
+        userId
       ]
     );
     res.status(201).json(newJob.rows[0]);
@@ -113,16 +109,74 @@ router.post('/', async (req, res) => {
   }
 });
 
+// POST /jobs/application/:id
+router.post('/application/:id', async (req, res) => {
+  const db = req.app.get('db');
+  const job_id = parseInt(req.params.id);
+
+  if (isNaN(job_id) || job_id <= 0) {
+    res.status(400).json({ error: 'Invalid job ID' });
+    return;
+  }
+
+  const result = ApplicationSchema.safeParse(req.body);
+  if (!result.success) {
+    res.status(400).json({ message: 'Validation failed', errors: result.error.issues });
+    return;
+  }
+  const { applied_date, feeling } = result.data;
+
+  try {
+    const googleId = (req as any).user.sub;
+
+    const userResult = await db.query('SELECT id FROM users WHERE google_id = $1', [googleId]);
+
+    if (userResult.rows.length === 0) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const userId = userResult.rows[0].id;
+    // 1. Check job exists and belongs to user
+    const jobResult = await db.query('SELECT owner_id FROM jobs WHERE id = $1', [job_id]);
+    if (jobResult.rowCount === 0) {
+      res.status(404).json({ error: 'Job not found' });
+      return;
+    }
+    if (jobResult.rows[0].owner_id !== userId) {
+      res.status(403).json({ error: 'You do not own this job' });
+      return;
+    }
+
+    // 2. Insert application
+    const appResult = await db.query(
+      `INSERT INTO applications (applied_date, status, feeling, job_id, applicant_id)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [
+        applied_date ?? new Date().toISOString().split('T')[0],
+        'applied',
+        feeling ?? null,
+        job_id,
+        userId,
+      ]
+    );
+    res.status(201).json(appResult.rows[0]);
+  } catch (error) {
+    console.error('Error creating application:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // PUT /jobs/:id
 router.put('/:id', async (req, res) => {
   const db = req.app.get('db');
   const jobId = parseInt(req.params.id);
 
   if (isNaN(jobId) || jobId <= 0) {
-    res.status(400).json({error: 'Invalid job ID'});
+    res.status(400).json({ error: 'Invalid job ID' });
     return;
   }
-  
+
   // Using a partial schema as not all fields are required for update
   const updateSchema = JobSchema.partial()
   const result = updateSchema.safeParse(req.body);

@@ -1,13 +1,5 @@
 import { Router } from 'express';
-import * as z from "zod/v4";
-
-const UserSchema = z.object({
-  google_id: z.string(),
-  email: z.email(),
-  name: z.string().min(2).max(100).optional(),
-  picture: z.string().length(2).optional(),
-  created_at: z.date().default(() => new Date()),
-});
+import { UserSchema } from '../schemas';
 
 const router = Router();
 

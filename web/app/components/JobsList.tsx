@@ -1,10 +1,17 @@
 'use client'
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useJobs } from '../hooks/useJobs';
+import JobForm from './JobForm';
 
 const JobsList: React.FC = () => {
-  const { jobs, loading, error } = useJobs();
+  const { jobs, loading, error, refetch } = useJobs();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const handleAddJobSuccess = () => {
+    // Refetch jobs after successful addition
+    refetch();
+  };
 
   if (loading) {
     return (
@@ -42,9 +49,9 @@ const JobsList: React.FC = () => {
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  <a 
-                    href={job.url} 
-                    target="_blank" 
+                  <a
+                    href={job.url}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-blue-600 hover:underline"
                   >
@@ -53,7 +60,7 @@ const JobsList: React.FC = () => {
                 </h3>
                 <p className="text-gray-600 text-lg mb-2">{job.company}</p>
                 <p className="text-gray-500 mb-2">📍 {job.location}</p>
-                
+
                 {(job.min_salary || job.max_salary) && (
                   <p className="text-green-600 font-medium mb-2">
                     💰 {job.min_salary && job.max_salary ? (
@@ -65,12 +72,12 @@ const JobsList: React.FC = () => {
                     ) : null}
                   </p>
                 )}
-                
+
                 <p className="text-gray-400 text-sm">
                   📅 Posted: {new Date(job.date_posted).toLocaleDateString()}
                 </p>
               </div>
-              
+
               <div className="flex items-center ml-4">
                 <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
                   <span className="text-yellow-500 text-lg">⭐</span>
@@ -83,6 +90,18 @@ const JobsList: React.FC = () => {
           </div>
         ))}
       </div>
+      <button
+        onClick={() => setIsFormOpen(true)}
+        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
+      >
+        <span className="mr-1">+</span> Add Job
+      </button>
+      {/* Job Form Modal */}
+      <JobForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSuccess={handleAddJobSuccess}
+      />
     </div>
   );
 };

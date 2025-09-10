@@ -1,26 +1,101 @@
 @import "tailwindcss";
 
+/* Terminal theme colors */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #00ff00;
+  --primary: #00aa00;
+  --secondary: #004400;
+  --accent: #ffaa00;
+  --warning: #ff3300;
+  --border: #004400;
+  --input-bg: #000000;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Terminal animations */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.animate-blink {
+  animation: blink 1s step-end infinite;
 }
 
+/* Terminal typewriter effect */
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+.animate-typing {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typing 1s steps(30, end);
+}
+
+/* Base styles */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Courier New', Courier, monospace;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* Terminal scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #264426;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #346634;
+}
+
+/* Terminal selection */
+::selection {
+  background: rgba(0, 255, 0, 0.2);
+  color: #00ff00;
+}
+
+/* Terminal focus outline */
+:focus {
+  outline: 1px solid var(--primary);
+  outline-offset: 0;
+}
+
+/* Terminal input styles */
+input, textarea, select {
+  background-color: var(--input-bg);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Ensure links look terminal-like */
+a {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Fix for Firefox */
+@-moz-document url-prefix() {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #264426 #0a0a0a;
+  }
 }

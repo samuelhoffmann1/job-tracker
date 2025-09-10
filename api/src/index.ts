@@ -2,9 +2,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { jwtDecrypt } from 'jose';
 import crypto from 'crypto';
-import jobsRouter from './routes/jobs';
+import jobsRouter from './routes/apps';
 import usersRouter from './routes/users';
-import applicationsRouter from './routes/applications';
 import { db } from './db';
 
 const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
@@ -67,8 +66,7 @@ export function createApp(database: any) {
   app.use(logger);
 
   // Mount the routes
-  app.use('/jobs', authenticateToken, jobsRouter);
-  app.use('/applications', authenticateToken, applicationsRouter);
+  app.use('/apps', authenticateToken, jobsRouter);
   app.use('/users', usersRouter);
 
   // Error handling middleware

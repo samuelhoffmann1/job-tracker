@@ -9,6 +9,9 @@ interface Job {
   location: string;
   min_salary: number | null;
   max_salary: number | null;
+  feeling: string | null;
+  status: string;
+  applied_date: string;
   rating: number;
   date_posted: string;
   owner_id: number;
@@ -27,17 +30,17 @@ export const useJobs = () => {
     setError(null);
 
     try {
-      const response = await fetch('/api/jobs', { credentials: "include" });
+      const response = await fetch('/api/apps', { credentials: "include" });
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch jobs: ${response.status}`);
+        throw new Error(`Failed to fetch applications: ${response.status}`);
       }
 
       const jobsData = await response.json();
       setJobs(jobsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-      console.error('Error fetching jobs:', err);
+      console.error('Error fetching applications:', err);
     } finally {
       setLoading(false);
     }

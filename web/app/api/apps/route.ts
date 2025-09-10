@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await fetch(`${apiUrl}/jobs/user`, {
+    const response = await fetch(`${apiUrl}/apps/user`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${jwtString}`,
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    const response = await fetch(`${apiUrl}/jobs`, {
+    const response = await fetch(`${apiUrl}/apps`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -66,6 +66,38 @@ export async function POST(request: NextRequest) {
     console.error('Error creating job:', error);
     return NextResponse.json(
       { error: 'Failed to create job' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const secretString = process.env.NEXTAUTH_SECRET!;
+    const jwtString = await getToken({ req: request, raw: true, secret: secretString });
+
+    if (!jwtString) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await request.json();
+
+    const response = await fetch(`${apiUrl}/apps/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${jwtString}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete job');
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting job:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete job' },
       { status: 500 }
     );
   }

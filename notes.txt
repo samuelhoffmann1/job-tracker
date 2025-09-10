@@ -1,0 +1,69 @@
+CREATE TABLE public.new_applications (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(500) NOT NULL,
+    company VARCHAR(255) NOT NULL,
+    url TEXT NOT NULL,
+    location VARCHAR(200) NOT NULL,
+    date_posted DATE,
+    applied_date DATE,
+    min_salary INTEGER,
+    max_salary INTEGER,
+    rating REAL NOT NULL,
+    status VARCHAR(50) DEFAULT 'Applied' NOT NULL,
+    feeling VARCHAR(50),
+    user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+
+
+
+
+INSERT INTO public.new_applications (
+    title, company, url, location, date_posted, applied_date, 
+    min_salary, max_salary, rating, status, feeling, user_id
+)
+SELECT 
+    j.title, j.company, j.url, j.location, j.date_posted, a.applied_date,
+    j.min_salary, j.max_salary, j.rating, a.status, a.feeling, a.applicant_id
+FROM public.jobs j
+JOIN public.applications a ON j.id = a.job_id;
+
+
+
+
+
+
+INSERT INTO public.new_applications (
+    title, company, url, location, date_posted, 
+    applied_date, min_salary, max_salary, rating, status, user_id
+)
+SELECT 
+    j.title, j.company, j.url, j.location, j.date_posted,
+    NULL, j.min_salary, j.max_salary, j.rating, 'Applied', j.owner_id
+FROM public.jobs j
+WHERE NOT EXISTS (
+    SELECT 1 FROM public.applications a WHERE a.job_id = j.id
+);
+
+
+
+ALTER TABLE public.new_applications RENAME TO applications;
+
+
+CREATE INDEX idx_applications_user_id ON public.applications(user_id);
+CREATE INDEX idx_applications_status ON public.applications(status);
+CREATE INDEX idx_applications_company ON public.applications(company);
+
+
+CREATE SEQUENCE IF NOT EXISTS public.applications_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+-- Step 10: Assign ownership (optional - adjust as needed)
+ALTER TABLE public.applications OWNER TO postgres;
+ALTER SEQUENCE public.applications_id_seq OWNER TO postgres;

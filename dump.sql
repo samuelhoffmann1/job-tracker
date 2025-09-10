@@ -27,11 +27,18 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.applications (
     id integer NOT NULL,
-    applied_date date DEFAULT CURRENT_DATE NOT NULL,
-    status character varying(50) NOT NULL,
+    title character varying(500) NOT NULL,
+    company character varying(255) NOT NULL,
+    url text NOT NULL,
+    location character varying(200) NOT NULL,
+    date_posted date,
+    applied_date date,
+    min_salary integer,
+    max_salary integer,
+    rating real NOT NULL,
+    status character varying(50) DEFAULT 'Applied'::character varying NOT NULL,
     feeling character varying(50),
-    job_id integer NOT NULL,
-    applicant_id integer NOT NULL
+    user_id integer NOT NULL
 );
 
 
@@ -53,37 +60,10 @@ CREATE SEQUENCE public.applications_id_seq
 ALTER SEQUENCE public.applications_id_seq OWNER TO postgres;
 
 --
--- Name: applications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: new_applications_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE public.applications_id_seq OWNED BY public.applications.id;
-
-
---
--- Name: jobs; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.jobs (
-    id integer NOT NULL,
-    title character varying(500) NOT NULL,
-    url text NOT NULL,
-    date_posted date NOT NULL,
-    location character varying(200) NOT NULL,
-    min_salary integer,
-    max_salary integer,
-    rating real NOT NULL,
-    company character varying(255) NOT NULL,
-    owner_id integer NOT NULL
-);
-
-
-ALTER TABLE public.jobs OWNER TO postgres;
-
---
--- Name: jobs_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.jobs_id_seq
+CREATE SEQUENCE public.new_applications_id_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -92,13 +72,13 @@ CREATE SEQUENCE public.jobs_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.jobs_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.new_applications_id_seq OWNER TO postgres;
 
 --
--- Name: jobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: new_applications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE public.jobs_id_seq OWNED BY public.jobs.id;
+ALTER SEQUENCE public.new_applications_id_seq OWNED BY public.applications.id;
 
 
 --
@@ -143,14 +123,7 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 -- Name: applications id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.applications ALTER COLUMN id SET DEFAULT nextval('public.applications_id_seq'::regclass);
-
-
---
--- Name: jobs id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.jobs ALTER COLUMN id SET DEFAULT nextval('public.jobs_id_seq'::regclass);
+ALTER TABLE ONLY public.applications ALTER COLUMN id SET DEFAULT nextval('public.new_applications_id_seq'::regclass);
 
 
 --
@@ -164,17 +137,11 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 -- Data for Name: applications; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.applications (id, applied_date, status, feeling, job_id, applicant_id) FROM stdin;
-\.
-
-
---
--- Data for Name: jobs; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.jobs (id, title, url, date_posted, location, min_salary, max_salary, rating, company, owner_id) FROM stdin;
-8	Senior Software Engineer	https://example.com/jobs/senior-engineer	2025-06-27	San Francisco, CA	120000	180000	8.5	Tech Corp	3
-9	Full Stack Developer	https://company.com/careers/dev	2025-08-04	Remote	100000	150000	9	Awesome Startup	4
+COPY public.applications (id, title, company, url, location, date_posted, applied_date, min_salary, max_salary, rating, status, feeling, user_id) FROM stdin;
+1	test	good company	https://jobs.careers.microsoft.com/logout?lang=en_us	remote	2025-09-05	\N	\N	\N	8.9	Applied	\N	4
+2	Big Baller Brand Social Media	Big Baller Brand	https://yourmom.com	East Coast	2025-09-08	\N	3	20	5.1	Applied	\N	4
+3	Senior Software Engineer	Tech Corp	https://example.com/jobs/senior-engineer	San Francisco, CA	2025-06-27	\N	120000	180000	8.5	Applied	\N	3
+4	Full Stack Developer	Awesome Startup	https://company.com/careers/dev	Remote	2025-08-04	\N	100000	150000	9	Applied	\N	4
 \.
 
 
@@ -192,37 +159,29 @@ COPY public.users (id, google_id, email, name, picture, created_at) FROM stdin;
 -- Name: applications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.applications_id_seq', 1, true);
+SELECT pg_catalog.setval('public.applications_id_seq', 1, false);
 
 
 --
--- Name: jobs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: new_applications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.jobs_id_seq', 9, true);
+SELECT pg_catalog.setval('public.new_applications_id_seq', 4, true);
 
 
 --
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 8, true);
+SELECT pg_catalog.setval('public.users_id_seq', 14, true);
 
 
 --
--- Name: applications applications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: applications new_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.applications
-    ADD CONSTRAINT applications_pkey PRIMARY KEY (id);
-
-
---
--- Name: jobs jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.jobs
-    ADD CONSTRAINT jobs_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT new_applications_pkey PRIMARY KEY (id);
 
 
 --
@@ -250,27 +209,32 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: applications fk_applicant; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: idx_applications_company; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_applications_company ON public.applications USING btree (company);
+
+
+--
+-- Name: idx_applications_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_applications_status ON public.applications USING btree (status);
+
+
+--
+-- Name: idx_applications_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_applications_user_id ON public.applications USING btree (user_id);
+
+
+--
+-- Name: applications new_applications_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.applications
-    ADD CONSTRAINT fk_applicant FOREIGN KEY (applicant_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-
---
--- Name: applications fk_job; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.applications
-    ADD CONSTRAINT fk_job FOREIGN KEY (job_id) REFERENCES public.jobs(id) ON DELETE CASCADE;
-
-
---
--- Name: jobs fk_owner; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.jobs
-    ADD CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    ADD CONSTRAINT new_applications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --

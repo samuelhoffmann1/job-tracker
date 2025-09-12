@@ -21,50 +21,66 @@ export async function setupTestDb() {
     )
   `);
 
-  // Create jobs table
-  await testDb.query(`
-    CREATE TABLE IF NOT EXISTS jobs (
-      id SERIAL PRIMARY KEY,
-      title VARCHAR(500) NOT NULL,
-      url TEXT NOT NULL,
-      date_posted DATE NOT NULL,
-      location VARCHAR(200) NOT NULL,
-      min_salary INTEGER NOT NULL,
-      max_salary INTEGER NOT NULL,
-      rating REAL NOT NULL,
-      company VARCHAR(255) NOT NULL,
-      owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
-    )
-  `);
-
-  // Create applications table
+  // Create new applications table
   await testDb.query(`
     CREATE TABLE IF NOT EXISTS applications (
       id SERIAL PRIMARY KEY,
-      applied_date DATE NOT NULL DEFAULT CURRENT_DATE,
-      status VARCHAR(50) NOT NULL,
-      feeling VARCHAR(50),
-      job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
-      applicant_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
+      title VARCHAR(500) NOT NULL,
+      company VARCHAR(255) NOT NULL,
+      url TEXT NOT NULL,
+      location VARCHAR(200) NOT NULL,
+      date_posted DATE,
+      applied_date DATE,
+      min_salary INTEGER,
+      max_salary INTEGER,
+      rating REAL NOT NULL,
+      status VARCHAR(50) DEFAULT 'Applied' NOT NULL,
+      feeling VARCHAR(1000),
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
     )
+  `);
+
+  // Create indexes for the applications table
+  await testDb.query(`
+    CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
+    CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
+    CREATE INDEX IF NOT EXISTS idx_applications_company ON applications(company);
+  `);
+
+  // Create sequence for applications table
+  await testDb.query(`
+    CREATE SEQUENCE IF NOT EXISTS applications_id_seq
+      AS integer
+      START WITH 1
+      INCREMENT BY 1
+      NO MINVALUE
+      NO MAXVALUE
+      CACHE 1;
   `);
 }
 
+// Clear test data
 export async function clearTestData() {
-  // Delete in correct order due to foreign key constraints
+  // Delete all data from the applications table
   await testDb.query('DELETE FROM applications');
-  await testDb.query('DELETE FROM jobs');
+
+  // Delete all data from the users table
   await testDb.query('DELETE FROM users');
-  
+
   // Reset sequences
   await testDb.query('ALTER SEQUENCE applications_id_seq RESTART WITH 1');
-  await testDb.query('ALTER SEQUENCE jobs_id_seq RESTART WITH 1');
   await testDb.query('ALTER SEQUENCE users_id_seq RESTART WITH 1');
 }
 
+// Teardown test database
 export async function teardownTestDb() {
+  // Drop the applications table
   await testDb.query('DROP TABLE IF EXISTS applications CASCADE');
-  await testDb.query('DROP TABLE IF EXISTS jobs CASCADE');
+
+  // Drop the users table
   await testDb.query('DROP TABLE IF EXISTS users CASCADE');
+
+  // End the database connection
   await testDb.end();
 }

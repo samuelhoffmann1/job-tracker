@@ -46,7 +46,7 @@ describe('JobsList', () => {
     }));
 
     render(<JobsList />);
-    expect(screen.getByText(/Loading jobs/i)).toBeInTheDocument();
+    expect(screen.getByText(/Loading job data/i)).toBeInTheDocument();
   });
 
   it('shows error state', () => {

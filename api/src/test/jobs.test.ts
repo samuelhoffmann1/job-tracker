@@ -3,7 +3,7 @@ import { createApp } from '../index';
 import { testDb, setupTestDb, clearTestData, teardownTestDb } from '../test-utils/test-db';
 import { generateTestToken } from '../test-utils/test-token';
 
-describe('Jobs API', () => {
+describe('applications API', () => {
   let app: any;
   let authToken: string;
   let userId: number;
@@ -32,29 +32,29 @@ describe('Jobs API', () => {
     await teardownTestDb();
   });
 
-  describe('GET /jobs', () => {
-    it('should return empty array when no jobs exist', async () => {
+  describe('GET /apps', () => {
+    it('should return empty array when no applications exist', async () => {
       const response = await request(app)
-        .get('/jobs')
+        .get('/apps')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body).toEqual([]);
     });
 
-    it('should return jobs ordered by rating DESC', async () => {
-      // Insert test jobs
+    it('should return applications ordered by rating DESC', async () => {
+      // Insert test applications
       await testDb.query(
-        'INSERT INTO jobs (title, url, date_posted, location, min_salary, max_salary, rating, company, owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+        'INSERT INTO applications (title, url, date_posted, location, min_salary, max_salary, rating, company, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
         ['Job 1', 'https://example.com/job1', '2024-01-01', 'Remote', 50000, 60000, 7.5, 'Company A', userId]
       );
       await testDb.query(
-        'INSERT INTO jobs (title, url, date_posted, location, min_salary, max_salary, rating, company, owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+        'INSERT INTO applications (title, url, date_posted, location, min_salary, max_salary, rating, company, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
         ['Job 2', 'https://example.com/job2', '2024-01-02', 'New York', 70000, 80000, 9.0, 'Company B', userId]
       );
 
       const response = await request(app)
-        .get('/jobs')
+        .get('/apps')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -64,21 +64,23 @@ describe('Jobs API', () => {
     });
   });
 
-  describe('POST /jobs', () => {
+  describe('POST /apps', () => {
     it('should create a new job with valid data', async () => {
       const jobData = {
         title: 'Software Engineer',
         url: 'https://example.com/job',
         date_posted: '2024-01-15',
+        applied_date: '2025-02-27',
         location: 'San Francisco',
         min_salary: 80000,
         max_salary: 120000,
         rating: 8.5,
         company: 'Tech Corp',
+        feeling: null,
       };
 
       const response = await request(app)
-        .post('/jobs')
+        .post('/apps')
         .send(jobData)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(201);
@@ -91,7 +93,7 @@ describe('Jobs API', () => {
         max_salary: 120000,
         rating: 8.5,
         company: 'Tech Corp',
-        owner_id: userId
+        user_id: userId
       });
       expect(response.body.id).toBeDefined();
     });
@@ -105,7 +107,7 @@ describe('Jobs API', () => {
       };
 
       const response = await request(app)
-        .post('/jobs')
+        .post('/apps')
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidJobData)
         .expect(400);
@@ -125,11 +127,11 @@ describe('Jobs API', () => {
         max_salary: 120000,
         rating: 8.5,
         company: 'Tech Corp',
-        owner_id: userId
+        user_id: userId
       };
 
       const response = await request(app)
-        .post('/jobs')
+        .post('/apps')
         .set('Authorization', `Bearer ${authToken}`)
         .send(jobData)
         .expect(400);
@@ -147,11 +149,11 @@ describe('Jobs API', () => {
         max_salary: 120000,
         rating: 15, // Invalid: > 10
         company: 'Tech Corp',
-        owner_id: userId
+        user_id: userId
       };
 
       const response = await request(app)
-        .post('/jobs')
+        .post('/apps')
         .set('Authorization', `Bearer ${authToken}`)
         .send(jobData)
         .expect(400);
@@ -169,11 +171,11 @@ describe('Jobs API', () => {
         max_salary: 120000,
         rating: 8.5,
         company: 'Tech Corp',
-        owner_id: userId
+        user_id: userId
       };
 
       const response = await request(app)
-        .post('/jobs')
+        .post('/apps')
         .set('Authorization', `Bearer ${authToken}`)
         .send(jobData)
         .expect(400);
@@ -182,13 +184,13 @@ describe('Jobs API', () => {
     });
   });
 
-  describe('PUT /jobs/:id', () => {
+  describe('PUT /apps/:id', () => {
     let jobId: number;
 
     beforeEach(async () => {
       // Create a test job to update
       const jobResult = await testDb.query(
-        'INSERT INTO jobs (title, url, date_posted, location, min_salary, max_salary, rating, company, owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
+        'INSERT INTO applications (title, url, date_posted, location, min_salary, max_salary, rating, company, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
         ['Original Job', 'https://example.com/original', '2024-01-01', 'Remote', 50000, 60000, 7.0, 'Original Company', userId]
       );
       jobId = jobResult.rows[0].id;
@@ -202,7 +204,7 @@ describe('Jobs API', () => {
       };
 
       const response = await request(app)
-        .put(`/jobs/${jobId}`)
+        .put(`/apps/${jobId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(200);
@@ -215,7 +217,7 @@ describe('Jobs API', () => {
         // Other fields should remain unchanged
         url: 'https://example.com/original',
         company: 'Original Company',
-        owner_id: userId
+        user_id: userId
       });
     });
 
@@ -225,7 +227,7 @@ describe('Jobs API', () => {
       };
 
       const response = await request(app)
-        .put(`/jobs/${jobId}`)
+        .put(`/apps/${jobId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(200);
@@ -235,23 +237,23 @@ describe('Jobs API', () => {
       expect(response.body.company).toBe('Original Company'); // Should remain unchanged
     });
 
-    it('should return 400 for invalid job ID', async () => {
+    it('should return 400 for Invalid application ID', async () => {
       const updateData = { title: 'Updated Title' };
 
       await request(app)
-        .put('/jobs/invalid-id')
+        .put('/apps/invalid-id')
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);
 
       await request(app)
-        .put('/jobs/0')
+        .put('/apps/0')
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);
 
       await request(app)
-        .put('/jobs/-1')
+        .put('/apps/-1')
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);
@@ -261,17 +263,17 @@ describe('Jobs API', () => {
       const updateData = { title: 'Updated Title' };
 
       const response = await request(app)
-        .put('/jobs/99999')
+        .put('/apps/99999')
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(404);
 
-      expect(response.body).toHaveProperty('error', 'Job not found');
+      expect(response.body).toHaveProperty('error', 'Application not found or not authorized');
     });
 
     it('should return 400 when no fields provided for update', async () => {
       const response = await request(app)
-        .put(`/jobs/${jobId}`)
+        .put(`/apps/${jobId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({})
         .expect(400);
@@ -286,7 +288,7 @@ describe('Jobs API', () => {
       };
 
       const response = await request(app)
-        .put(`/jobs/${jobId}`)
+        .put(`/apps/${jobId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);
@@ -300,7 +302,7 @@ describe('Jobs API', () => {
       };
 
       const response = await request(app)
-        .put(`/jobs/${jobId}`)
+        .put(`/apps/${jobId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);
@@ -316,7 +318,7 @@ describe('Jobs API', () => {
       };
 
       const response = await request(app)
-        .put(`/jobs/${jobId}`)
+        .put(`/apps/${jobId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(200);
@@ -334,23 +336,23 @@ describe('Jobs API', () => {
     });
   });
 
-  describe('GET /jobs/count', () => {
-    it('should return zero jobs when none exist', async () => {
+  describe('GET /apps/count', () => {
+    it('should return zero applications when none exist', async () => {
       const response = await request(app)
-        .get('/jobs/count')
+        .get('/apps/count')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body).toHaveProperty('count', 0);
     });
 
-    it('should return the total count of jobs', async () => {
+    it('should return the total count of applications', async () => {
       await testDb.query(
-        'INSERT INTO jobs (title, url, date_posted, location, min_salary, max_salary, rating, company, owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
+        'INSERT INTO applications (title, url, date_posted, location, min_salary, max_salary, rating, company, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
         ['Test Job', 'https://example.com', new Date(), 'Remote', 50000, 100000, 5, 'Test Company', userId]
       );
       const response = await request(app)
-        .get('/jobs/count')
+        .get('/apps/count')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -358,49 +360,49 @@ describe('Jobs API', () => {
     });
   });
 
-  describe('DELETE /jobs/:id', () => {
+  describe('DELETE /apps/:id', () => {
     let jobId: number;
 
     beforeEach(async () => {
       // Create a test job
       const jobResult = await testDb.query(
-        'INSERT INTO jobs (title, url, date_posted, location, min_salary, max_salary, rating, company, owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
+        'INSERT INTO applications (title, url, date_posted, location, min_salary, max_salary, rating, company, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
         ['Test Job', 'https://example.com', new Date(), 'Remote', 50000, 100000, 5, 'Test Company', userId]
       );
       jobId = jobResult.rows[0].id;
     });
 
     it('should return 204 for successful deletion', async () => {
-      let count = await testDb.query('SELECT COUNT(*) :: integer FROM jobs');
+      let count = await testDb.query('SELECT COUNT(*) :: integer FROM applications');
       expect(count.rows[0]).toHaveProperty('count', 1);
 
       const response = await request(app)
-        .delete(`/jobs/${jobId}`)
+        .delete(`/apps/${jobId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(204);
 
       expect(response.body).toEqual({});
 
-      count = await testDb.query('SELECT COUNT(*) :: integer FROM jobs');
+      count = await testDb.query('SELECT COUNT(*) :: integer FROM applications');
       expect(count.rows[0]).toHaveProperty('count', 0);
     });
 
     it('should return 404 for non-existent job', async () => {
       const response = await request(app)
-        .delete('/jobs/99999')
+        .delete('/apps/99999')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
-      expect(response.body).toHaveProperty('error', 'Job not found');
+      expect(response.body).toHaveProperty('error', 'Application not found or not authorized');
     });
 
-    it('should return 400 for invalid job ID', async () => {
+    it('should return 400 for Invalid application ID', async () => {
       const response = await request(app)
-        .delete('/jobs/invalid-id')
+        .delete('/apps/invalid-id')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
 
-      expect(response.body).toHaveProperty('error', 'Invalid job ID');
+      expect(response.body).toHaveProperty('error', 'Invalid application ID');
     });
   });
 });

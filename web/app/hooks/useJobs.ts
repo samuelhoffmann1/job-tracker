@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 
 interface Job {
@@ -22,9 +22,14 @@ export const useJobs = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { data: session, status } = useSession();
+  const hasLoadedRef = useRef(false);
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (forceRefresh = false) => {
+    // Don't fetch if not authenticated
     if (status !== 'authenticated') return;
+    
+    // Don't fetch if we already have jobs and this isn't a forced refresh
+    if (jobs.length > 0 && !forceRefresh && hasLoadedRef.current) return;
 
     setLoading(true);
     setError(null);
@@ -38,6 +43,7 @@ export const useJobs = () => {
 
       const jobsData = await response.json();
       setJobs(jobsData);
+      hasLoadedRef.current = true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error fetching applications:', err);
@@ -50,5 +56,8 @@ export const useJobs = () => {
     fetchJobs();
   }, [session, status]);
 
-  return { jobs, loading, error, refetch: fetchJobs };
+  // Function for manual refreshes, adds, deletes, etc.
+  const refetch = () => fetchJobs(true);
+
+  return { jobs, loading, error, refetch };
 };

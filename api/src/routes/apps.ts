@@ -63,6 +63,7 @@ router.get('/user', async (req, res) => {
 // POST /apps
 router.post('/', async (req, res) => {
   const db = req.app.get('db');
+  console.log(req.body);
   const result = ApplicationSchema.safeParse(req.body);
   if (!result.success) {
     console.log('Error: ', result.error!.issues)
@@ -96,7 +97,7 @@ router.post('/', async (req, res) => {
         application.company,
         application.url,
         application.location,
-        application.date_posted,
+        application.date_posted || null,
         application.applied_date || new Date().toISOString().split('T')[0],
         application.min_salary || null,
         application.max_salary || null,
@@ -128,6 +129,7 @@ router.put('/:id', async (req, res) => {
   const updateSchema = ApplicationSchema.partial()
   const result = updateSchema.safeParse(req.body);
   if (!result.success) {
+    console.log(req.body)
     res.status(400).json({
       message: 'Validation failed',
       errors: result.error!.issues,

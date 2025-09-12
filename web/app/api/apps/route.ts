@@ -71,6 +71,57 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function PUT(
+  request: NextRequest,
+) {
+  try {
+    const secretString = process.env.NEXTAUTH_SECRET!;
+    const jwtString = await getToken({
+      req: request,
+      raw: true,
+      secret: secretString
+    });
+
+    if (!jwtString) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { id, ...updateData } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Job ID is required" }, { status: 400 });
+    }
+
+    const response = await fetch(`${apiUrl}/apps/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${jwtString}`,
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.log(errorData)
+      return NextResponse.json(
+        { error: errorData.error || 'Failed to update job' },
+        { status: response.status }
+      );
+    }
+
+    const updatedJob = await response.json();
+    return NextResponse.json(updatedJob);
+  } catch (error) {
+    console.error('Error updating job:', error);
+    return NextResponse.json(
+      { error: 'Failed to update job' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   try {
     const secretString = process.env.NEXTAUTH_SECRET!;

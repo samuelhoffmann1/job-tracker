@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
-/* Terminal theme colors */
+/* Terminal theme colors - more subtle and modern */
 :root {
-  --background: #000000;
-  --foreground: #00ff00;
-  --primary: #00aa00;
-  --secondary: #004400;
-  --accent: #ffaa00;
-  --warning: #ff3300;
-  --border: #004400;
-  --input-bg: #000000;
+  --background: #1a1a1a;
+  --foreground: #d4d4d4;
+  --primary: #3b82f6;
+  --secondary: #1e293b;
+  --accent: #f59e0b;
+  --warning: #ef4444;
+  --border: #374151;
+  --input-bg: #111827;
 }
 
 /* Terminal animations */
@@ -19,7 +19,7 @@
 }
 
 .animate-blink {
-  animation: blink 1s step-end infinite;
+  animation: blink 0.8s step-end infinite;
 }
 
 /* Terminal typewriter effect */
@@ -45,27 +45,27 @@ body {
 
 /* Terminal scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: #111827;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #264426;
+  background: #374151;
   border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #346634;
+  background: #4b5563;
 }
 
 /* Terminal selection */
 ::selection {
-  background: rgba(0, 255, 0, 0.2);
-  color: #00ff00;
+  background: rgba(59, 130, 246, 0.3);
+  color: #d1d5db;
 }
 
 /* Terminal focus outline */
@@ -84,7 +84,7 @@ input, textarea, select {
 
 /* Ensure links look terminal-like */
 a {
-  color: var(--foreground);
+  color: var(--primary);
   text-decoration: none;
 }
 
@@ -92,10 +92,17 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Required field indicator */
+.required-field::after {
+  content: '*';
+  color: var(--warning);
+  margin-left: 0.25rem;
+}
+
 /* Fix for Firefox */
 @-moz-document url-prefix() {
   * {
     scrollbar-width: thin;
-    scrollbar-color: #264426 #0a0a0a;
+    scrollbar-color: #374151 #111827;
   }
 }

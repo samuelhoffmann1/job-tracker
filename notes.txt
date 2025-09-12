@@ -10,7 +10,7 @@ CREATE TABLE public.new_applications (
     max_salary INTEGER,
     rating REAL NOT NULL,
     status VARCHAR(50) DEFAULT 'Applied' NOT NULL,
-    feeling VARCHAR(50),
+    feeling VARCHAR(1000),
     user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );

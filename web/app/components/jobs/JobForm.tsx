@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaAsterisk } from 'react-icons/fa';
 
@@ -164,30 +162,30 @@ const JobForm: React.FC<JobFormProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 font-mono">
-      <div className="bg-gray-900 border border-gray-700 w-full max-w-2xl overflow-auto max-h-[90vh] rounded-sm shadow-xl">
-        <div className="px-6 py-3 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-xl text-gray-200">
+    <div className="fixed inset-0 bg-black/70 flex items-start md:items-center justify-center z-50 p-2 md:p-4 font-mono overflow-y-auto">
+      <div className="bg-gray-900 border border-gray-700 w-full max-w-2xl overflow-auto max-h-[95vh] mt-4 md:mt-0 rounded-sm shadow-xl">
+        <div className="px-4 md:px-6 py-3 border-b border-gray-800 flex justify-between items-center sticky top-0 bg-gray-900 z-10">
+          <h2 className="text-lg md:text-xl text-gray-200">
             <span className="text-gray-500">$</span> {isEditing ? 'edit-job' : 'add-job'}
           </h2>
           <button
             onClick={resetAndClose}
-            className="text-gray-500 hover:text-gray-300"
+            className="text-gray-500 hover:text-gray-300 p-1.5" // Increased tap target
             aria-label="Close"
           >
             <FaTimes />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-4">
+        <form onSubmit={handleSubmit} className="px-4 md:px-6 py-4">
           {error && (
             <div className="mb-4 bg-red-900/20 border border-red-800 text-red-400 px-4 py-3 rounded-sm">
               <span className="text-gray-500">$</span> ERROR: {error}
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-4">
+            <div className="col-span-1 md:col-span-2">
               <label className="block text-sm text-gray-400 mb-1 flex items-center">
                 <span className="text-gray-500 mr-1">$</span> JOB_TITLE
                 <FaAsterisk className="text-red-500 ml-1" size={8} title="Required field" />
@@ -198,7 +196,7 @@ const JobForm: React.FC<JobFormProps> = ({
                 value={formData.title}
                 onChange={handleChange}
                 required
-                className="w-full bg-gray-800 border border-gray-700 px-3 py-2 text-gray-200 focus:border-blue-600 focus:outline-none rounded-sm"
+                className="w-full bg-gray-800 border border-gray-700 px-3 py-2.5 text-gray-200 focus:border-blue-600 focus:outline-none rounded-sm"
                 placeholder="Senior Developer"
               />
             </div>
@@ -343,7 +341,7 @@ const JobForm: React.FC<JobFormProps> = ({
               </div>
             </div>
 
-            <div className="col-span-2">
+            <div className="col-span-1 md:col-span-2">
               <label className="block text-sm text-gray-400 mb-1">
                 <span className="text-gray-500 mr-1">$</span> NOTES
               </label>
@@ -352,29 +350,29 @@ const JobForm: React.FC<JobFormProps> = ({
                 value={formData.feeling || ''}
                 onChange={handleChange}
                 rows={3}
-                className="w-full bg-gray-800 border border-gray-700 px-3 py-2 text-gray-200 focus:border-blue-600 focus:outline-none rounded-sm"
+                className="w-full bg-gray-800 border border-gray-700 px-3 py-2.5 text-gray-200 focus:border-blue-600 focus:outline-none rounded-sm"
                 placeholder="Any thoughts about this position..."
               ></textarea>
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-gray-800 flex justify-between items-center">
-            <div className="text-gray-400">
+          <div className="mt-6 pt-4 border-t border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="text-gray-400 w-full sm:w-auto text-center sm:text-left">
               {loading ? '> Processing...' : <span className="text-gray-500 mr-1 animate-blink">_</span>}
             </div>
 
-            <div className="flex space-x-3">
+            <div className="flex flex-col sm:flex-row gap-3 sm:space-x-3 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={resetAndClose}
-                className="px-4 py-2 text-gray-400 border border-gray-700 hover:bg-gray-800 transition-colors rounded-sm"
+                className="px-4 py-2.5 text-gray-400 border border-gray-700 hover:bg-gray-800 transition-colors rounded-sm w-full sm:w-auto"
                 disabled={loading}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-900/30 text-blue-300 border border-blue-700 hover:bg-blue-800/40 transition-colors rounded-sm"
+                className="px-4 py-2.5 bg-blue-900/30 text-blue-300 border border-blue-700 hover:bg-blue-800/40 transition-colors rounded-sm w-full sm:w-auto"
                 disabled={loading}
               >
                 {loading ? 'Processing...' : isEditing ? 'Update Job' : 'Save Job'}

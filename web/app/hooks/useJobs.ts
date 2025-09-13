@@ -1,21 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-
-interface Job {
-  id: number;
-  title: string;
-  company: string;
-  url: string;
-  location: string;
-  min_salary: number | null;
-  max_salary: number | null;
-  feeling: string | null;
-  status: string;
-  applied_date: string;
-  rating: number;
-  date_posted: string;
-  owner_id: number;
-}
+import { Job } from '../types/job.types';
 
 export const useJobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -23,6 +8,7 @@ export const useJobs = () => {
   const [error, setError] = useState<string | null>(null);
   const { data: session, status } = useSession();
   const hasLoadedRef = useRef(false);
+  const forceUpdateRef = useRef(0);
 
   const fetchJobs = async (forceRefresh = false) => {
     // Don't fetch if not authenticated
@@ -52,12 +38,16 @@ export const useJobs = () => {
     }
   };
 
+  // Only refetch when session/status changes or when explicitly requested
   useEffect(() => {
     fetchJobs();
-  }, [session, status]);
+  }, [session, status, forceUpdateRef.current]);
 
-  // Function for manual refreshes, adds, deletes, etc.
-  const refetch = () => fetchJobs(true);
+  // Explicit refetch function that forces a refresh
+  const refetch = () => {
+    forceUpdateRef.current += 1;
+    fetchJobs(true);
+  };
 
   return { jobs, loading, error, refetch };
 };

@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import { FaTerminal, FaSignInAlt, FaSignOutAlt, FaUserAlt } from "react-icons/fa"
-import JobsList from "./components/JobsList"
+import JobsList from "./components/jobs/JobsList"
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -99,7 +99,7 @@ export default function Home() {
               <span className="text-gray-500">$</span> ./login.sh
             </Link>
 
-            <div className="mt-8 inline-block animate-blink">_</div>
+            <div className="mt-8 ml-4 inline-block animate-blink">_</div>
           </div>
         )}
       </main>

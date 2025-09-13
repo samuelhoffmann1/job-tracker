@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import JobsList from '../JobsList';
+import JobsList from '../jobs/JobsList';
 
 // Mock the useJobs hook
 jest.mock('../../hooks/useJobs', () => ({

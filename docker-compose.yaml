@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:17
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -15,7 +15,7 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    restart: always
+    restart: unless-stopped
     env_file:
       - ./api/.env.production
     depends_on:
@@ -27,7 +27,7 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
-    restart: always
+    restart: unless-stopped
     env_file:
       - ./web/.env.production
     expose:
@@ -39,6 +39,7 @@ services:
     build:
       context: ./nginx
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:
